@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-qj)wyy4xx6aj)cfnykfyw1+s5fadaz&yi#ja4sng5dk@zabf7r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['majeysa-backend.onrender.com']
 
 
 # Application definition
@@ -133,7 +133,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    # "http://localhost:5173",
+    "https://pasteleriamajeysa.netlify.app"
 ]
 
 #MAIL_SETTINGS
