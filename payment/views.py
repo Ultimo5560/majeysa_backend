@@ -5,6 +5,14 @@ from .serializers import PaymentSerializer
 from django.core.mail import send_mail
 import mercadopago
 from django.conf import settings
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import mercadopago
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
 
 sdk = mercadopago.SDK(settings.SECRET_KEY_MERCADO_PAGO)  # Reemplaza ACCESS_TOKEN con tu token de acceso
 
@@ -139,11 +147,19 @@ class ProcessPaymentView(APIView):
 
 
 
+
+
 class CreatePreferenceView(APIView):
     def post(self, request):
+        # Imprime los datos de la solicitud para depuración
         print('------------------------------------------------------------------------')
         print(request.data)
         print('------------------------------------------------------------------------')
+
+        # Configuración de Mercado Pago
+        sdk = mercadopago.SDK(settings.SECRET_KEY_MERCADO_PAGO)
+
+        # Datos de la preferencia
         preference_data = {
             "items": [
                 {
@@ -156,8 +172,31 @@ class CreatePreferenceView(APIView):
                 "email": request.data.get("email"),
             },
             "auto_return": "approved",
+            "back_urls": {
+                "success": "https://pasteleriamajeysa.netlify.app/making-order/success-transaction",  # Cambia esta URL por la tuya
+                "failure": "https://pasteleriamajeysa.netlify.app/making-order/error-transaction",  # Cambia esta URL por la tuya
+                "pending": "https://pasteleriamajeysa.netlify.app/making-order/pennding-transaction"   # Cambia esta URL por la tuya
+            },
+            "notification_url": "https://majeysa-backend.onrender.com/api/mercado-pago-webhook/",  # Cambia esta URL por la tuya
         }
-        preference_response = sdk.preference().create(preference_data)
-        preference = preference_response["response"]
-        return Response(preference, status=status.HTTP_201_CREATED)
+
+        # Crear preferencia en Mercado Pago
+        try:
+            preference_response = sdk.preference().create(preference_data)
+            preference = preference_response["response"]
+            return Response(preference, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print("Error creando preferencia:", e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@csrf_exempt
+def mercado_pago_webhook(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        print("Webhook recibido:", data)
+        # Procesa los datos del webhook según sea necesario
+        return JsonResponse({"status": "ok"})
+
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
