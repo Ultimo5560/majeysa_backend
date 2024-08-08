@@ -192,7 +192,7 @@ class CreatePreferenceView(APIView):
 
 @csrf_exempt
 def mercado_pago_webhook(request):
-    print("Este es el request de mercado_pago_webhook:", data)
+    print("Este es el request de mercado_pago_webhook:", request)
     if request.method == "POST":
         data = json.loads(request.body)
         print("Webhook recibido:", data)
