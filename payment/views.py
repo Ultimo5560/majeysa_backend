@@ -15,7 +15,7 @@ from rest_framework import status
 from django.conf import settings
 from .models import Purchase
 
-sdk = mercadopago.SDK('APP_USR-1053615135302620-081121-f7dd03566086d9a1e3bf39c2f394a75e-1939559437')  # Reemplaza ACCESS_TOKEN con tu token de acceso
+sdk = mercadopago.SDK(settings.SECRET_KEY_MERCADO_PAGO)  # Reemplaza ACCESS_TOKEN con tu token de acceso
 
 # class ProcessPaymentView(APIView):
 #     def post(self, request):
@@ -156,6 +156,9 @@ class CreatePreferenceView(APIView):
 
         # Inicializa el serializer con los datos del request
         serializer = PaymentSerializer(data=request.data)
+
+        # Configuración de Mercado Pago
+        # sdk = mercadopago.SDK(settings.SECRET_KEY_MERCADO_PAGO)
         
         if serializer.is_valid():
             # Extrae y organiza los datos validados
