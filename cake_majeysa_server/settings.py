@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-qj)wyy4xx6aj)cfnykfyw1+s5fadaz&yi#ja4sng5dk@zabf7r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['majeysa-backend.onrender.com']
+ALLOWED_HOSTS = ['majeysa-backend.onrender.com', '127.0.0.1']
 
 
 # Application definition
@@ -84,8 +84,12 @@ WSGI_APPLICATION = 'cake_majeysa_server.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'dbpurchase',
+        'USER': 'majeysa',
+        'PASSWORD':'majeysapro',
+        'HOST': 'localhost',
+        'PORT': '5432',
 
     }
 }
@@ -134,6 +138,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "https://pasteleriamajeysa.netlify.app",
+    "http://localhost:5173"
 ]
 
 #MAIL_SETTINGS
