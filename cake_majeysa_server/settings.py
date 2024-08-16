@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': 'dbpurchase',
         'USER': 'majeysa',
         'PASSWORD':'majeysapro',
-        'HOST': 'localhost',
+        'HOST': 'majeysa-backend.onrender.com',
         'PORT': '5432',
 
     }
