@@ -172,33 +172,50 @@ def mercado_pago_webhook(request):
             if not preference_id:
                 return JsonResponse({"error": "ID de preferencia no encontrado"}, status=400)
 
-            # Configuración del correo para el vendedor
-            asunto = 'Nuevo pedido recibido'
-            mensaje_vendedor = f"""
-            <html>
-            <body>
-                <p>Estimado Vendedor,</p>
-                <p>Se ha recibido un nuevo pedido con el siguiente ID de preferencia:</p>
-                <p>ID de preferencia: {preference_id}</p>
-                <p>Por favor, revisa los detalles del pedido en tu panel de administración.</p>
-                <p>Atentamente,<br>Pastelería Majeysa</p>
-            </body>
-            </html>
-            """
+            # Aquí realizamos una consulta a la API de Mercado Pago para obtener el estado de la transacción
+            url = f"https://api.mercadopago.com/v1/payments/{preference_id}"
+            headers = {
+                "Authorization": f"Bearer {settings.SECRET_KEY_MERCADO_PAGO}"  # Correcta inclusión del token de acceso # Reemplaza esto con tu token de acceso
+            }
+            response = requests.get(url, headers=headers)
+            if response.status_code != 200:
+                return JsonResponse({"error": "Error al consultar el estado de la transacción"}, status=500)
 
-            email_remitente = 'majeysapasteleria@gmail.com'
-            email_destinatario_vendedor_1 = 'jemima_q@hotmail.com'  # Email del vendedor
-            email_destinatario_vendedor_2 = 'eber926@hotmail.com'  # Email del vendedor
+            payment_data = response.json()
+            transaction_status = payment_data.get("status")
 
-            send_mail(
-                asunto, 
-                mensaje_vendedor, 
-                email_remitente, 
-                [email_destinatario_vendedor_1, email_destinatario_vendedor_2],
-                html_message=mensaje_vendedor
-            )
+            # Verificar si la transacción fue aprobada
+            if transaction_status == "approved":
+                # Configuración del correo para el vendedor
+                asunto = 'Nuevo pedido recibido'
+                mensaje_vendedor = f"""
+                <html>
+                <body>
+                    <p>Estimado Vendedor,</p>
+                    <p>Se ha recibido un nuevo pedido con el siguiente ID de preferencia:</p>
+                    <p>ID de preferencia: {preference_id}</p>
+                    <p>Estado de la transacción: {transaction_status}</p>
+                    <p>Por favor, revisa los detalles del pedido en un correo posterior.</p>
+                    <p>Atentamente,<br>Pastelería Majeysa</p>
+                </body>
+                </html>
+                """
 
-            return JsonResponse({"status": "Correo enviado y preferencia encontrada", "preference_id": preference_id}, status=200)
+                email_remitente = 'majeysapasteleria@gmail.com'
+                email_destinatario_vendedor_1 = 'jemima_q@hotmail.com'
+                email_destinatario_vendedor_2 = 'eber926@hotmail.com'
+
+                send_mail(
+                    asunto, 
+                    mensaje_vendedor, 
+                    email_remitente, 
+                    [email_destinatario_vendedor_1, email_destinatario_vendedor_2],
+                    html_message=mensaje_vendedor
+                )
+
+                return JsonResponse({"status": "Correo enviado y preferencia encontrada", "preference_id": preference_id}, status=200)
+            else:
+                return JsonResponse({"status": "Transacción no aprobada", "transaction_status": transaction_status}, status=200)
 
         except json.JSONDecodeError:
             return JsonResponse({"error": "Error en el formato del JSON recibido"}, status=400)
@@ -207,7 +224,6 @@ def mercado_pago_webhook(request):
             return JsonResponse({"error": str(e)}, status=500)
     
     return JsonResponse({"error": "Método no permitido"}, status=405)
-
 
 
 
