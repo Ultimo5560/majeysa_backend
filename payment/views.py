@@ -13,138 +13,95 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
-from .models import Purchase
 
 sdk = mercadopago.SDK(settings.SECRET_KEY_MERCADO_PAGO)  # Reemplaza ACCESS_TOKEN con tu token de acceso
 
-# class ProcessPaymentView(APIView):
-#     def post(self, request):
-#         print('------------------------------------------------------------------------')
-#         print(request.data)
-#         print('------------------------------------------------------------------------')
 
-#         # Inicializa el serializer con los datos del request
-#         serializer = PaymentSerializer(data=request.data)
-        
-#         if serializer.is_valid():
-#             # Extrae y organiza los datos validados
-#             validated_data = serializer.validated_data
-#             # payer_info = validated_data["payer"]
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
+from .serializers import SendMailFinishSerializar
 
-#             # print("payer_info:", payer_info)
+class SendMailFinishView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SendMailFinishSerializar(data=request.data)
 
-#             payment_data_mercado_pago = {
-#                 "token": validated_data["token"],
-#                 "issuer_id": validated_data["issuer_id"],
-#                 "payment_method_id": validated_data["payment_method_id"],
-#                 "transaction_amount": validated_data["transaction_amount"],
-#                 "installments": validated_data["installments"],
-#                 "payer": {
-#                     "email": validated_data["cardholderEmail"],
-#                     "first_name": validated_data["cardholderName"]
-#                 },
-#             }
+        if serializer.is_valid():
+            # Extraer los datos del serializador
+            inputName = serializer.validated_data.get('inputName')
+            inputEmail = serializer.validated_data.get('inputEmail')
+            inputCelPhone = serializer.validated_data.get('inputCelPhone')
+            inputMsg = serializer.validated_data.get('inputMsg')
+            dessertData = serializer.validated_data.get('dessertData', {})
+            
+            # Crear el mensaje del cliente
+            mensaje_cliente = f"""
+            <html>
+            <body>
+                <p>Estimado(a) {inputName},</p>
+                <p>Gracias por su compra. Los detalles de su transacción son los siguientes:</p>
+                <ul>
+                    <li>Producto: {dessertData.get('dessert')}</li>
+                    <li>Monto: N/A</li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Método de pago: N/A</li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Correo del cliente: {inputEmail}</li>
+                    <li>Tamaño o cantidad: para {dessertData.get('countPersons')} personas</li>
+                    <li>Forma del postre: {dessertData.get('styleDessert')}</li>
+                    <li>Sabor del postre: {dessertData.get('savorDessert')}</li>
+                    <li>Relleno: {dessertData.get('filling')}</li>
+                    <li>Fecha de recogida del postre: {dessertData.get('dateCollectDessert')}</li>
+                    <li>Hora de recogida del postre: {dessertData.get('hourCollectDessert')}</li>
+                </ul>
+                <p>Gracias por su preferencia.</p>
+                <p>Atentamente,<br>Pasteleria Majeysa</p>
+            </body>
+            </html>
+            """
 
-#             payment_data = {
-#                 # payment
-#                 "inputName": validated_data.get("inputName", 'No especificado'),
-#                 "inputEmail": validated_data.get("inputEmail", 'No especificado'),
-#                 "inputCelPhone": validated_data.get("inputCelPhone", 'No especificado'),
-#                 "inputMsg": validated_data.get("inputMsg", 'No especificado'),
-#                 "description": validated_data.get("description", 'No especificado'),
-#                 "cardholderEmail": validated_data.get("cardholderEmail", 'No especificado'),
-#                 "cardholderName": validated_data.get("cardholderName", 'No especificado'),
-#                 # dessert data
-#                 "countPersons": validated_data.get("dessertData", {}).get("countPersons", 'No especificado'),
-#                 "styleDessert": validated_data.get("dessertData", {}).get("styleDessert", 'No especificado'),
-#                 "savorDessert": validated_data.get("dessertData", {}).get("savorDessert", 'No especificado'),
-#                 "filling": validated_data.get("dessertData", {}).get("filling", 'No especificado'),
-#                 "dessert": validated_data.get("dessertData", {}).get("dessert", 'No especificado'),
-#                 "colorOfDessert": validated_data.get("dessertData", {}).get("colorOfDessert", 'No especificado'),
-#                 "colorOfBorderDessert": validated_data.get("dessertData", {}).get("colorOfBorderDessert", 'No especificado'),
-#                 "imageExampleDessert": validated_data.get("dessertData", {}).get("imageExampleDessert", 'No especificado'),
-#                 "dateCollectDessert": validated_data.get("dessertData", {}).get("dateCollectDessert", 'No especificado'),
-#                 "hourCollectDessert": validated_data.get("dessertData", {}).get("hourCollectDessert", 'No especificado'),
-#             }
+            # Crear mensaje para el vendedor
+            mensaje_vendedor = f"""
+            <html>
+            <body>
+                <p>Estimado Vendedor,</p>
+                <p>Se ha realizado un nuevo pedido de un postre. Los detalles de la transacción son los siguientes:</p>
+                <ul>
+                    <li>Cliente: {inputName}</li>
+                    <li>Correo del cliente: {inputEmail}</li>
+                    <li>Celular del cliente: {inputCelPhone}</li>
+                    <li>Mensaje del cliente: {inputMsg}</li>
+                    <li>Producto: {dessertData.get('dessert')}</li>
+                    <li>Monto: N/A</li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Método de pago: N/A</li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Fecha de recogida del postre: {dessertData.get('dateCollectDessert')}</li>
+                    <li>Hora de recogida del postre: {dessertData.get('hourCollectDessert')}</li>
+                    <li>Tamaño del postre: para {dessertData.get('countPersons')} personas</li>
+                    <li>Forma del postre: {dessertData.get('styleDessert')}</li>
+                    <li>Sabor del postre: {dessertData.get('savorDessert')}</li>
+                    <li>Relleno: {dessertData.get('filling')}</li>
+                    <li>Imagen de ejemplo: <a href="{dessertData.get('imageRef', '#')}" target="_blank">Ver imagen</a></li>
+                    <li>Color del postre: <span style="display:inline-block; width:200px; height:40px; background-color:{dessertData.get('firstColor')};">{dessertData.get('firstColor')}</span></li>
+                    <li>Color del borde: <span style="display:inline-block; width:200px; height:40px; background-color: {dessertData.get('secondColor')};">{dessertData.get('secondColor')}</span></li>
+                </ul>
+            </body>
+            </html>
+            """
 
-#             print('Datos de pago:', payment_data_mercado_pago['token'])
-#             print('cardholderEmail:', payment_data['cardholderEmail'])
+            email_remitente = 'majeysapasteleria@gmail.com'
+            email_destinatario_cliente = inputEmail
+            email_destinatario_vendedor_1 = 'jemima_q@hotmail.com'  # Email del vendedor
+            email_destinatario_vendedor_2 = 'eber926@hotmail.com'  # Email del vendedor
 
-#             payment_response = sdk.payment().create(payment_data_mercado_pago)
-#             payment = payment_response["response"]
-#             print(payment_response)
+            try:
+                # Enviar correos
+                send_mail('Confirmación de Pedido - Pastelería Majeysa', mensaje_cliente, email_remitente, [email_destinatario_cliente], html_message=mensaje_cliente)
+                send_mail('Nuevo Pedido - Pastelería Majeysa', mensaje_vendedor, email_remitente, [email_destinatario_vendedor_1, email_destinatario_vendedor_2], html_message=mensaje_vendedor)
 
-#             if payment_response["status"] in (200, 201):
-#                 asunto = 'Confirmación de compra'
-
-#                 mensaje_cliente = f"""
-#                 <html>
-#                 <body>
-#                     <p>Estimado(a) {payment_data['inputName']},</p>
-#                     <p>Gracias por su compra. Los detalles de su transacción son los siguientes:</p>
-#                     <ul>
-#                         <li>Producto: {payment_data['dessert']}</li>
-#                         <li>Monto: ${payment_data_mercado_pago['transaction_amount']}</li>
-#                         <li>Método de pago: {payment_data_mercado_pago['payment_method_id']}</li>
-#                         <li>Correo del pagador: {payment_data_mercado_pago['payer']['email']}</li>
-#                         <li>Correo del cliente: {payment_data['inputEmail']}</li>
-#                         <li>Tamaño o cantidad: para {payment_data['countPersons']} personas</li>
-#                         <li>Forma del postre: {payment_data['styleDessert']}</li>
-#                         <li>Sabor del postre: {payment_data['savorDessert']}</li>
-#                         <li>Relleno: {payment_data['filling']}</li>
-#                         <li>Fecha de recogida del postre: {payment_data['dateCollectDessert']}</li>
-#                         <li>Hora de recogida del postre: {payment_data['hourCollectDessert']}</li>
-#                     </ul>
-#                     <p>Gracias por su preferencia.</p>
-#                     <p>Atentamente,<br>Pasteleria Majeysa</p>
-#                 </body>
-#                 </html>
-#                 """
-
-#                 # Crear mensaje para el vendedor
-#                 mensaje_vendedor = f"""
-#                     <html>
-#                     <body>
-#                         <p>Estimado Vendedor,</p>
-#                         <p>Se ha realizado un nuevo pedido de un postre. Los detalles de la transacción son los siguientes:</p>
-#                         <ul>
-#                             <li>Cliente: {payment_data['inputName']}</li>
-#                             <li>Correo del cliente: {payment_data['inputEmail']}</li>
-#                             <li>Celular del cliente: {payment_data['inputCelPhone']}</li>
-#                             <li>Mensaje del cliente: {payment_data['inputMsg']}</li>
-#                             <li>Producto: {payment_data['dessert']}</li>
-#                             <li>Monto: ${payment_data_mercado_pago['transaction_amount']}</li>
-#                             <li>Método de pago: {payment_data_mercado_pago['payment_method_id']}</li>
-#                             <li>Correo del pagador: {payment_data_mercado_pago['payer']['email']}</li>
-#                             <li>Fecha de recogida del postre: {payment_data['dateCollectDessert']}</li>
-#                             <li>Hora de recogida del postre: {payment_data['hourCollectDessert']}</li>
-#                             <li>Tamaño del postre: para {payment_data['countPersons']} personas</li>
-#                             <li>Forma del postre: {payment_data['styleDessert']}</li>
-#                             <li>Sabor del postre: {payment_data['savorDessert']}</li>
-#                             <li>Relleno: {payment_data['filling']}</li>
-#                             <li>Imagen de ejemplo: <a href="{payment_data.get('imageExampleDessert', '#')}" target="_blank">Ver imagen</a></li>
-#                             <li>Color del postre: <span style="display:inline-block; width:200px; height:40px; color:#feffc5; background-color:{payment_data['colorOfDessert']};">{payment_data['colorOfDessert']}</span></li>
-#                             <li>Color del borde: <span style="display:inline-block; width:200px; height:40px; color:#feffc5; background-color: {payment_data['colorOfBorderDessert']};">{payment_data['colorOfBorderDessert']} </span></li>
-#                         </ul>
-#                     </body>
-#                     </html>
-#                     """
-
-#                 email_remitente = 'majeysapasteleria@gmail.com'
-#                 email_destinatario_cliente = payment_data['inputEmail']
-#                 email_destinatario_vendedor_1 = 'jemima_q@hotmail.com'  # Email del vendedor
-#                 email_destinatario_vendedor_2 = 'eber926@hotmail.com'  # Email del vendedor
-
-#                 send_mail(asunto, mensaje_vendedor, email_remitente, [email_destinatario_vendedor_1, email_destinatario_vendedor_2], html_message=mensaje_vendedor)
-#                 send_mail(asunto, mensaje_cliente, email_remitente, [email_destinatario_cliente], html_message=mensaje_cliente)
-
-#                 return Response(payment, status=status.HTTP_201_CREATED)
-#             else:
-#                 print(payment_response)
-#                 return Response(payment, status=status.HTTP_400_BAD_REQUEST)
-#         else:
-#             print('Errores de validación:', serializer.errors)
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "Correos enviados exitosamente"}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -174,7 +131,7 @@ class CreatePreferenceView(APIView):
                     }
                 ],
                 "payer": {
-                    "email": validated_data.get("cardholderEmail", "no-reply@example.com"),
+                    "email": validated_data.get("cardholderEmail",),
                 },
                 "auto_return": "approved",
                 "back_urls": {
@@ -190,29 +147,6 @@ class CreatePreferenceView(APIView):
                 preference_response = sdk.preference().create(preference_data)
                 preference = preference_response["response"]
                 
-                # Guardar los detalles de la compra en la base de datos
-                purchase = Purchase.objects.create(
-                    preference_id=preference["id"],
-                    input_name=validated_data.get("inputName", 'No especificado'),
-                    input_email=validated_data.get("inputEmail", 'No especificado'),
-                    input_cel_phone=validated_data.get("inputCelPhone", 'No especificado'),
-                    input_msg=validated_data.get("inputMsg", 'No especificado'),
-                    description=validated_data.get("description", 'No especificado'),
-                    cardholder_email=validated_data.get("cardholderEmail", 'No especificado'),
-                    cardholder_name=validated_data.get("cardholderName", 'No especificado'),
-                    count_persons=validated_data.get("dessertData", {}).get("countPersons", None),
-                    style_dessert=validated_data.get("dessertData", {}).get("styleDessert", None),
-                    savor_dessert=validated_data.get("dessertData", {}).get("savorDessert", None),
-                    filling=validated_data.get("dessertData", {}).get("filling", None),
-                    dessert=validated_data.get("dessertData", {}).get("dessert", None),
-                    color_of_dessert=validated_data.get("dessertData", {}).get("colorOfDessert", None),
-                    color_of_border_dessert=validated_data.get("dessertData", {}).get("colorOfBorderDessert", None),
-                    image_example_dessert=validated_data.get("dessertData", {}).get("imageExampleDessert", None),
-                    date_collect_dessert=validated_data.get("dessertData", {}).get("dateCollectDessert", None),
-                    hour_collect_dessert=validated_data.get("dessertData", {}).get("hourCollectDessert", None),
-                    transaction_amount=validated_data.get("transaction_amount", 0),
-                    payment_method_id=validated_data.get("payment_method_id", None)
-                )
 
                 print(preference)
                 return Response(preference, status=status.HTTP_201_CREATED)
@@ -228,90 +162,52 @@ class CreatePreferenceView(APIView):
 
 @csrf_exempt
 def mercado_pago_webhook(request):
-
     if request.method == "POST":
-        data = json.loads(request.body)
-        print("Webhook recibido:", data)
-
-        # Obtener el ID de la preferencia desde el webhook
-        preference_id = data.get("data", {}).get("id")
-        if not preference_id:
-            return JsonResponse({"error": "ID de preferencia no encontrado"}, status=400)
-
         try:
-            # Buscar la compra en la base de datos usando el ID de la preferencia
-            purchase = Purchase.objects.get(preference_id=preference_id)
+            data = json.loads(request.body)
+            print("Webhook recibido:", data)
 
-            # Configuración del correo
-            asunto = 'Confirmación de compra'
+            # Obtener el ID de la preferencia desde el webhook
+            preference_id = data.get("data", {}).get("id")
+            if not preference_id:
+                return JsonResponse({"error": "ID de preferencia no encontrado"}, status=400)
 
-            mensaje_cliente = f"""
+            # Configuración del correo para el vendedor
+            asunto = 'Nuevo pedido recibido'
+            mensaje_vendedor = f"""
             <html>
             <body>
-                <p>Estimado(a) {purchase.input_name},</p>
-                <p>Gracias por su compra. Los detalles de su transacción son los siguientes:</p>
-                <ul>
-                    <li>Producto: {purchase.dessert}</li>
-                    <li>Monto: ${purchase.transaction_amount}</li>
-                    <li>Método de pago: {purchase.payment_method_id}</li>
-                    <li>Correo del pagador: {purchase.cardholder_email}</li>
-                    <li>Correo del cliente: {purchase.input_email}</li>
-                    <li>Tamaño o cantidad: para {purchase.count_persons} personas</li>
-                    <li>Forma del postre: {purchase.style_dessert}</li>
-                    <li>Sabor del postre: {purchase.savor_dessert}</li>
-                    <li>Relleno: {purchase.filling}</li>
-                    <li>Fecha de recogida del postre: {purchase.date_collect_dessert}</li>
-                    <li>Hora de recogida del postre: {purchase.hour_collect_dessert}</li>
-                </ul>
-                <p>Gracias por su preferencia.</p>
-                <p>Atentamente,<br>Pasteleria Majeysa</p>
+                <p>Estimado Vendedor,</p>
+                <p>Se ha recibido un nuevo pedido con el siguiente ID de preferencia:</p>
+                <p>ID de preferencia: {preference_id}</p>
+                <p>Por favor, revisa los detalles del pedido en tu panel de administración.</p>
+                <p>Atentamente,<br>Pastelería Majeysa</p>
             </body>
             </html>
             """
 
-            # Crear mensaje para el vendedor
-            mensaje_vendedor = f"""
-                <html>
-                <body>
-                    <p>Estimado Vendedor,</p>
-                    <p>Se ha realizado un nuevo pedido de un postre. Los detalles de la transacción son los siguientes:</p>
-                    <ul>
-                        <li>Cliente: {purchase.input_name}</li>
-                        <li>Correo del cliente: {purchase.input_email}</li>
-                        <li>Celular del cliente: {purchase.input_cel_phone}</li>
-                        <li>Mensaje del cliente: {purchase.input_msg}</li>
-                        <li>Producto: {purchase.dessert}</li>
-                        <li>Monto: ${purchase.transaction_amount}</li>
-                        <li>Método de pago: {purchase.payment_method_id}</li>
-                        <li>Correo del pagador: {purchase.cardholder_email}</li>
-                        <li>Fecha de recogida del postre: {purchase.date_collect_dessert}</li>
-                        <li>Hora de recogida del postre: {purchase.hour_collect_dessert}</li>
-                        <li>Tamaño del postre: para {purchase.count_persons} personas</li>
-                        <li>Forma del postre: {purchase.style_dessert}</li>
-                        <li>Sabor del postre: {purchase.savor_dessert}</li>
-                        <li>Relleno: {purchase.filling}</li>
-                        <li>Imagen de ejemplo: <a href="{purchase.image_example_dessert}" target="_blank">Ver imagen</a></li>
-                        <li>Color del postre: <span style="display:inline-block; width:200px; height:40px; color:#feffc5; background-color:{purchase.color_of_dessert};">{purchase.color_of_dessert}</span></li>
-                        <li>Color del borde: <span style="display:inline-block; width:200px; height:40px; color:#feffc5; background-color: {purchase.color_of_border_dessert};">{purchase.color_of_border_dessert} </span></li>
-                    </ul>
-                </body>
-                </html>
-                """
-
             email_remitente = 'majeysapasteleria@gmail.com'
-            email_destinatario_cliente = purchase.input_email
             email_destinatario_vendedor_1 = 'jemima_q@hotmail.com'  # Email del vendedor
             email_destinatario_vendedor_2 = 'eber926@hotmail.com'  # Email del vendedor
 
-            send_mail(asunto, mensaje_vendedor, email_remitente, [email_destinatario_vendedor_1, email_destinatario_vendedor_2], html_message=mensaje_vendedor)
-            send_mail(asunto, mensaje_cliente, email_remitente, [email_destinatario_cliente], html_message=mensaje_cliente)
+            send_mail(
+                asunto, 
+                mensaje_vendedor, 
+                email_remitente, 
+                [email_destinatario_vendedor_1, email_destinatario_vendedor_2],
+                html_message=mensaje_vendedor
+            )
 
-            return JsonResponse({"status": "ok"})
-        except Purchase.DoesNotExist:
-            return JsonResponse({"error": "Compra no encontrada"}, status=404)
+            return JsonResponse({"status": "Correo enviado y preferencia encontrada", "preference_id": preference_id}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Error en el formato del JSON recibido"}, status=400)
         except Exception as e:
-            print("Error enviando correos:", e)
+            print("Error en el procesamiento:", e)
             return JsonResponse({"error": str(e)}, status=500)
-
+    
     return JsonResponse({"error": "Método no permitido"}, status=405)
+
+
+
 
