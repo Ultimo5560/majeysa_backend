@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 class DessertDataSerializer(serializers.Serializer):
+    priceOfDessert = serializers.FloatField(required=False, allow_null=True)
     countPersons = serializers.IntegerField(required=False, allow_null=True)
     styleDessert = serializers.CharField(required=False, allow_null=True)
     savorDessert = serializers.CharField(required=False, allow_null=True)

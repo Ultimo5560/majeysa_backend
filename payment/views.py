@@ -29,6 +29,7 @@ class SendMailFinishView(APIView):
 
         if serializer.is_valid():
             # Extraer los datos del serializador
+            token = serializer.validated_data.get('token')
             inputName = serializer.validated_data.get('inputName')
             inputEmail = serializer.validated_data.get('inputEmail')
             inputCelPhone = serializer.validated_data.get('inputCelPhone')
@@ -42,9 +43,9 @@ class SendMailFinishView(APIView):
                 <p>Estimado(a) {inputName},</p>
                 <p>Gracias por su compra. Los detalles de su transacción son los siguientes:</p>
                 <ul>
+                    <li>ID: {token}</li>
                     <li>Producto: {dessertData.get('dessert')}</li>
-                    <li>Monto: N/A</li> <!-- Reemplaza con el valor correcto si está disponible -->
-                    <li>Método de pago: N/A</li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Monto:{dessertData.get('priceOfDessert')}</li></li> <!-- Reemplaza con el valor correcto si está disponible -->
                     <li>Correo del cliente: {inputEmail}</li>
                     <li>Tamaño o cantidad: para {dessertData.get('countPersons')} personas</li>
                     <li>Forma del postre: {dessertData.get('styleDessert')}</li>
@@ -71,8 +72,7 @@ class SendMailFinishView(APIView):
                     <li>Celular del cliente: {inputCelPhone}</li>
                     <li>Mensaje del cliente: {inputMsg}</li>
                     <li>Producto: {dessertData.get('dessert')}</li>
-                    <li>Monto: N/A</li> <!-- Reemplaza con el valor correcto si está disponible -->
-                    <li>Método de pago: N/A</li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Monto: {dessertData.get('priceOfDessert')}</li> <!-- Reemplaza con el valor correcto si está disponible -->
                     <li>Fecha de recogida del postre: {dessertData.get('dateCollectDessert')}</li>
                     <li>Hora de recogida del postre: {dessertData.get('hourCollectDessert')}</li>
                     <li>Tamaño del postre: para {dessertData.get('countPersons')} personas</li>
@@ -80,8 +80,8 @@ class SendMailFinishView(APIView):
                     <li>Sabor del postre: {dessertData.get('savorDessert')}</li>
                     <li>Relleno: {dessertData.get('filling')}</li>
                     <li>Imagen de ejemplo: <a href="{dessertData.get('imageRef', '#')}" target="_blank">Ver imagen</a></li>
-                    <li>Color del postre: <span style="display:inline-block; width:200px; height:40px; background-color:{dessertData.get('firstColor')};">{dessertData.get('firstColor')}</span></li>
-                    <li>Color del borde: <span style="display:inline-block; width:200px; height:40px; background-color: {dessertData.get('secondColor')};">{dessertData.get('secondColor')}</span></li>
+                    <li>Color del postre: <span style="display:inline-block; width:300px; height:40px; background-color:{dessertData.get('firstColor')};">{dessertData.get('firstColor')}</span></li>
+                    <li>Color del borde: <span style="display:inline-block; width:300px; height:40px; background-color: {dessertData.get('secondColor')};">{dessertData.get('secondColor')}</span></li>
                 </ul>
             </body>
             </html>
