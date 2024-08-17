@@ -135,9 +135,9 @@ class CreatePreferenceView(APIView):
                 },
                 "auto_return": "approved",
                 "back_urls": {
-                    "success": "https://pasteleriamajeysa.netlify.app/making-order/success-transaction/",  # Cambia esta URL por la tuya
-                    "failure": "https://pasteleriamajeysa.netlify.app/making-order/error-transaction/",  # Cambia esta URL por la tuya
-                    "pending": "https://pasteleriamajeysa.netlify.app/making-order/pending-transaction/"   # Cambia esta URL por la tuya
+                    "success": "https://pasteleriamajeysa.netlify.app/success-transaction/",  # Cambia esta URL por la tuya
+                    "failure": "https://pasteleriamajeysa.netlify.app/error-transaction/",  # Cambia esta URL por la tuya
+                    "pending": "https://pasteleriamajeysa.netlify.app/pending-transaction/"   # Cambia esta URL por la tuya
                 },
                 "notification_url": "https://majeysa-backend.onrender.com/api/mercado-pago-webhook/",  # Cambia esta URL por la tuya
             }
