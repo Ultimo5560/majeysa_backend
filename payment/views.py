@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import PaymentSerializer
+from .serializers import PaymentSerializer, SendMailFinishSerializar
 from django.core.mail import send_mail
 import mercadopago
 from django.conf import settings
@@ -17,42 +17,55 @@ from django.conf import settings
 sdk = mercadopago.SDK(settings.SECRET_KEY_MERCADO_PAGO)  # Reemplaza ACCESS_TOKEN con tu token de acceso
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.mail import send_mail
-from .serializers import SendMailFinishSerializar
-
 class SendMailFinishView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = SendMailFinishSerializar(data=request.data)
 
+        print('///////////////////////////////////////////////////////////////')
+        # print(serializer)
+        print('///////////////////////////////////////////////////////////////')
+
         if serializer.is_valid():
             # Extraer los datos del serializador
+            validated_data = serializer.validated_data
+            print(validated_data)
             token = serializer.validated_data.get('token')
             inputName = serializer.validated_data.get('inputName')
             inputEmail = serializer.validated_data.get('inputEmail')
             inputCelPhone = serializer.validated_data.get('inputCelPhone')
             inputMsg = serializer.validated_data.get('inputMsg')
             dessertData = serializer.validated_data.get('dessertData', {})
+
+            print('******************************************************************')
+
+            print('serializer.validated_data.get(token):', validated_data.get('token'))
+            print('token: ',token)
+
+            print('serializer.validated_data.get(inputName): ',validated_data.get('inputName'))
+            print('inputName: ',inputName)
+
+            print('serializer.validated_data.get(dessertData): ',validated_data.get('dessertData', {}))
+            print('dessertData: ',dessertData)
+
+            print('******************************************************************')
             
             # Crear el mensaje del cliente
             mensaje_cliente = f"""
             <html>
             <body>
-                <p>Estimado(a) {inputName},</p>
+                <p>Estimado(a) {validated_data.get('inputName')},</p>
                 <p>Gracias por su compra. Los detalles de su transacción son los siguientes:</p>
                 <ul>
-                    <li>ID: {token}</li>
-                    <li>Producto: {dessertData.get('dessert')}</li>
-                    <li>Monto:{dessertData.get('priceOfDessert')}</li></li> <!-- Reemplaza con el valor correcto si está disponible -->
-                    <li>Correo del cliente: {inputEmail}</li>
-                    <li>Tamaño o cantidad: para {dessertData.get('countPersons')} personas</li>
-                    <li>Forma del postre: {dessertData.get('styleDessert')}</li>
-                    <li>Sabor del postre: {dessertData.get('savorDessert')}</li>
-                    <li>Relleno: {dessertData.get('filling')}</li>
-                    <li>Fecha de recogida del postre: {dessertData.get('dateCollectDessert')}</li>
-                    <li>Hora de recogida del postre: {dessertData.get('hourCollectDessert')}</li>
+                    <li>ID: {validated_data.get('token')}</li>
+                    <li>Producto: {validated_data.get('dessert')}</li>
+                    <li>Monto:{validated_data.get('priceOfDessert')}</li></li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Correo del cliente: {validated_data.get('inputEmail')}</li>
+                    <li>Tamaño o cantidad: para {validated_data.get('countPersons')} personas</li>
+                    <li>Forma del postre: {validated_data.get('styleDessert')}</li>
+                    <li>Sabor del postre: {validated_data.get('savorDessert')}</li>
+                    <li>Relleno: {validated_data.get('filling')}</li>
+                    <li>Fecha de recogida del postre: {validated_data.get('dateCollectDessert')}</li>
+                    <li>Hora de recogida del postre: {validated_data.get('hourCollectDessert')}</li>
                 </ul>
                 <p>Gracias por su preferencia.</p>
                 <p>Atentamente,<br>Pasteleria Majeysa</p>
@@ -67,21 +80,21 @@ class SendMailFinishView(APIView):
                 <p>Estimado Vendedor,</p>
                 <p>Se ha realizado un nuevo pedido de un postre. Los detalles de la transacción son los siguientes:</p>
                 <ul>
-                    <li>Cliente: {inputName}</li>
-                    <li>Correo del cliente: {inputEmail}</li>
-                    <li>Celular del cliente: {inputCelPhone}</li>
-                    <li>Mensaje del cliente: {inputMsg}</li>
-                    <li>Producto: {dessertData.get('dessert')}</li>
-                    <li>Monto: {dessertData.get('priceOfDessert')}</li> <!-- Reemplaza con el valor correcto si está disponible -->
-                    <li>Fecha de recogida del postre: {dessertData.get('dateCollectDessert')}</li>
-                    <li>Hora de recogida del postre: {dessertData.get('hourCollectDessert')}</li>
-                    <li>Tamaño del postre: para {dessertData.get('countPersons')} personas</li>
-                    <li>Forma del postre: {dessertData.get('styleDessert')}</li>
-                    <li>Sabor del postre: {dessertData.get('savorDessert')}</li>
-                    <li>Relleno: {dessertData.get('filling')}</li>
-                    <li>Imagen de ejemplo: <a href="{dessertData.get('imageRef', '#')}" target="_blank">Ver imagen</a></li>
-                    <li>Color del postre: <span style="display:inline-block; width:300px; height:40px; background-color:{dessertData.get('firstColor')};">{dessertData.get('firstColor')}</span></li>
-                    <li>Color del borde: <span style="display:inline-block; width:300px; height:40px; background-color: {dessertData.get('secondColor')};">{dessertData.get('secondColor')}</span></li>
+                    <li>Cliente: {validated_data.get('inputName')}</li>
+                    <li>Correo del cliente:{validated_data.get('inputEmail')} </li>
+                    <li>Celular del cliente: {validated_data.get('inputCelPhone')}</li>
+                    <li>Mensaje del cliente: {validated_data.get('inputMsg')}</li>
+                    <li>Producto: {validated_data.get('dessert')}</li>
+                    <li>Monto: {validated_data.get('priceOfDessert')}</li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Fecha de recogida del postre: {validated_data.get('dateCollectDessert')}</li>
+                    <li>Hora de recogida del postre: {validated_data.get('hourCollectDessert')}</li>
+                    <li>Tamaño del postre: para {validated_data.get('countPersons')} personas</li>
+                    <li>Forma del postre: {validated_data.get('styleDessert')}</li>
+                    <li>Sabor del postre: {validated_data.get('savorDessert')}</li>
+                    <li>Relleno: {validated_data.get('filling')}</li>
+                    <li>Imagen de ejemplo: <a href="{validated_data.get('imageRef', '#')}" target="_blank">Ver imagen</a></li>
+                    <li>Color del postre: <span style="display:inline-block; width:300px; height:40px; background-color:{validated_data.get('firstColor')};">{validated_data.get('firstColor')}</span></li>
+                    <li>Color del borde: <span style="display:inline-block; width:300px; height:40px; background-color: {validated_data.get('secondColor')};">{validated_data.get('secondColor')}</span></li>
                 </ul>
             </body>
             </html>
@@ -178,6 +191,7 @@ def mercado_pago_webhook(request):
                 "Authorization": f"Bearer {settings.SECRET_KEY_MERCADO_PAGO}"  # Correcta inclusión del token de acceso # Reemplaza esto con tu token de acceso
             }
             response = requests.get(url, headers=headers)
+            print(response)
             if response.status_code != 200:
                 return JsonResponse({"error": "Error al consultar el estado de la transacción"}, status=500)
 
