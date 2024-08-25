@@ -33,7 +33,6 @@ class SendMailFinishView(APIView):
                 <li>Nombre de la tarjeta: {validated_data.get('cardName')}</li>
                 <li>Folio: {validated_data.get('folio')}</li>
                 <li>Referencia: {validated_data.get('referencia')}</li>
-                <li>ID: {validated_data.get('token')}</li>
                 """
                 bank_name = validated_data.get('bankName')
             else:
