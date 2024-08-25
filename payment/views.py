@@ -21,34 +21,27 @@ class SendMailFinishView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = SendMailFinishSerializar(data=request.data)
 
-        print('///////////////////////////////////////////////////////////////')
-        # print(serializer)
-        print('///////////////////////////////////////////////////////////////')
-
         if serializer.is_valid():
             # Extraer los datos del serializador
             validated_data = serializer.validated_data
-            print(validated_data)
-            token = serializer.validated_data.get('token')
-            inputName = serializer.validated_data.get('inputName')
-            inputEmail = serializer.validated_data.get('inputEmail')
-            inputCelPhone = serializer.validated_data.get('inputCelPhone')
-            inputMsg = serializer.validated_data.get('inputMsg')
-            dessertData = serializer.validated_data.get('dessertData', {})
 
-            print('******************************************************************')
+            # Verificar si el campo 'bank' no es None o vacío
+            bank_info = ""
+            if validated_data.get('bank'):
+                bank_info = f"""
+                <li>Banco: {validated_data.get('bank')}</li>
+                <li>Nombre de la tarjeta: {validated_data.get('cardName')}</li>
+                <li>Folio: {validated_data.get('folio')}</li>
+                <li>Referencia: {validated_data.get('referencia')}</li>
+                <li>ID: {validated_data.get('token')}</li>
+                """
+                bank_name = validated_data.get('bankName')
+            else:
+                bank_info = f"""
+                <li>ID: {validated_data.get('token')}</li>
+                """
+                bank_name = "Mercado Pago"
 
-            print('serializer.validated_data.get(token):', validated_data.get('token'))
-            print('token: ',token)
-
-            print('serializer.validated_data.get(inputName): ',validated_data.get('inputName'))
-            print('inputName: ',inputName)
-
-            print('serializer.validated_data.get(dessertData): ',validated_data.get('dessertData', {}))
-            print('dessertData: ',dessertData)
-
-            print('******************************************************************')
-            
             # Crear el mensaje del cliente
             mensaje_cliente = f"""
             <html>
@@ -56,9 +49,10 @@ class SendMailFinishView(APIView):
                 <p>Estimado(a) {validated_data.get('inputName')},</p>
                 <p>Gracias por su compra. Los detalles de su transacción son los siguientes:</p>
                 <ul>
-                    <li>ID: {validated_data.get('token')}</li>
                     <li>Producto: {validated_data.get('dessert')}</li>
-                    <li>Monto:{validated_data.get('priceOfDessert')}</li></li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Monto: {validated_data.get('priceOfDessert')}</li>
+                    <li>Nombre del banco: {bank_name}</li>
+                    {bank_info}
                     <li>Correo del cliente: {validated_data.get('inputEmail')}</li>
                     <li>Tamaño o cantidad: para {validated_data.get('countPersons')} personas</li>
                     <li>Forma del postre: {validated_data.get('styleDessert')}</li>
@@ -68,7 +62,7 @@ class SendMailFinishView(APIView):
                     <li>Hora de recogida del postre: {validated_data.get('hourCollectDessert')}</li>
                 </ul>
                 <p>Gracias por su preferencia.</p>
-                <p>Atentamente,<br>Pasteleria Majeysa</p>
+                <p>Atentamente,<br>Pastelería Majeysa</p>
             </body>
             </html>
             """
@@ -81,11 +75,13 @@ class SendMailFinishView(APIView):
                 <p>Se ha realizado un nuevo pedido de un postre. Los detalles de la transacción son los siguientes:</p>
                 <ul>
                     <li>Cliente: {validated_data.get('inputName')}</li>
-                    <li>Correo del cliente:{validated_data.get('inputEmail')} </li>
+                    <li>Correo del cliente: {validated_data.get('inputEmail')}</li>
                     <li>Celular del cliente: {validated_data.get('inputCelPhone')}</li>
                     <li>Mensaje del cliente: {validated_data.get('inputMsg')}</li>
                     <li>Producto: {validated_data.get('dessert')}</li>
-                    <li>Monto: {validated_data.get('priceOfDessert')}</li> <!-- Reemplaza con el valor correcto si está disponible -->
+                    <li>Monto: {validated_data.get('priceOfDessert')}</li>
+                    <li>Nombre del banco: {bank_name}</li>
+                    {bank_info}
                     <li>Fecha de recogida del postre: {validated_data.get('dateCollectDessert')}</li>
                     <li>Hora de recogida del postre: {validated_data.get('hourCollectDessert')}</li>
                     <li>Tamaño del postre: para {validated_data.get('countPersons')} personas</li>
@@ -101,7 +97,7 @@ class SendMailFinishView(APIView):
             """
 
             email_remitente = 'majeysapasteleria@gmail.com'
-            email_destinatario_cliente = inputEmail
+            email_destinatario_cliente = validated_data.get('inputEmail')
             email_destinatario_vendedor_1 = 'jemima_q@hotmail.com'  # Email del vendedor
             email_destinatario_vendedor_2 = 'eber926@hotmail.com'  # Email del vendedor
 

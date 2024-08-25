@@ -39,3 +39,8 @@ class SendMailFinishSerializar(serializers.Serializer):
     imageRef = serializers.URLField(required=False, allow_null=True)
     dateCollectDessert = serializers.CharField(required=False, allow_null=True)
     hourCollectDessert = serializers.TimeField(required=False, allow_null=True)
+    bank = serializers.CharField(required=False, allow_null=True)
+    cardName = serializers.CharField(required=False, allow_null=True)
+    bankName = serializers.CharField(required=False, allow_null=True)
+    folio = serializers.CharField(required=False, allow_null=True)
+    referencia = serializers.CharField(required=False, allow_null=True)
